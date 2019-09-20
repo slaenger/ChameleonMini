@@ -13,6 +13,7 @@
 #include "../Log.h"
 
 /* Applications */
+#include "EMV.h"
 #include "MifareUltralight.h"
 #include "MifareClassic.h"
 #include "Reader14443A.h"

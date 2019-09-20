@@ -20,6 +20,9 @@ static const MapEntryType PROGMEM ConfigurationMap[] = {
     { .Id = CONFIG_MF_ULTRALIGHT_EV1_164B,   .Text = "MF_ULTRALIGHT_EV1_164B" },
     {.Id = CONFIG_MF_ULTRALIGHT_C, .Text = "MF_ULTRALIGHT_C"},
 #endif
+#ifdef CONFIG_APDU_SUPPORT
+    { .Id = CONFIG_APDU,   .Text = "APDU_EMU" },
+#endif
 #ifdef CONFIG_MF_CLASSIC_MINI_4B_SUPPORT
     { .Id = CONFIG_MF_CLASSIC_MINI_4B, 	.Text = "MF_CLASSIC_MINI_4B" },
 #endif
@@ -91,6 +94,24 @@ static const PROGMEM ConfigurationType ConfigurationTable[] = {
         .ReadOnly = true,
         .TagFamily = TAG_FAMILY_NONE
     },
+#ifdef CONFIG_APDU_SUPPORT
+    [CONFIG_APDU] = {
+            .CodecInitFunc = ISO14443ACodecInit,
+            .CodecDeInitFunc = ISO14443ACodecDeInit,
+            .CodecTaskFunc = ISO14443AAPDUCodecTask,
+            .ApplicationInitFunc = EMVAppinitAPDU,
+            .ApplicationResetFunc = EMVAppResetAPDU,
+            .ApplicationTaskFunc = EMVAppTask,
+            .ApplicationTickFunc = ApplicationTickDummy,
+            .ApplicationProcessFunc = EMVAppProcess,
+            .ApplicationGetUidFunc = EMVGetUid,
+            .ApplicationSetUidFunc = EMVSetUid,
+            .UidSize = ISO14443A_UID_SIZE_SINGLE,
+            .MemorySize = 0,
+            .ReadOnly = false,
+            .TagFamily = TAG_FAMILY_ISO14443A
+    },
+#endif
 #ifdef CONFIG_MF_ULTRALIGHT_SUPPORT
     [CONFIG_MF_ULTRALIGHT] = {
         .CodecInitFunc = ISO14443ACodecInit,

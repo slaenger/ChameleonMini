@@ -11,6 +11,7 @@
 #include "../LEDHook.h"
 #include "Codec.h"
 #include "Log.h"
+#include "../Terminal/ApplicationCom.h"
 
 /* Sampling is done using internal clock, synchronized to the field modulation.
  * For that we need to convert the bit rate for the internal clock. */
@@ -473,4 +474,95 @@ void ISO14443ACodecTask(void) {
         StartDemod();
     }
 }
+extern bool Communicating;
+static uint8_t ACCycles;
+extern bool ReceivedData;
+void ISO14443AAPDUCodecTask(void) {
+    if (Communicating)
+    {
+        if(SystemTick100ms())
+            ACCycles ++;
+        //We wait for App response and send when we get it going back to normal emulation
+        uint16_t AppBitCount =0;
+        if (ReceivedData) {
+            AppBitCount = ApplicationProcess(CodecBuffer, 0);
+        }
+        if (AppBitCount != ISO14443A_APP_NO_RESPONSE ) {
+            ACCycles = 0;
+            if (AppBitCount > (255*8)){
+                LogEntry(LOG_INFO_CODEC_TX_DATA, CodecBuffer, 255);
+            }
+            else LogEntry(LOG_INFO_CODEC_TX_DATA, CodecBuffer, (AppBitCount + 7) / 8);
+            LEDHook(LED_CODEC_TX, LED_PULSE);
+            BitCount = AppBitCount;
+            CodecBufferPtr = CodecBuffer;
+            CodecSetSubcarrier(CODEC_SUBCARRIERMOD_OOK, ISO14443A_SUBCARRIER_DIVIDER);
+            StateRegister = LOADMOD_START;
+        }else if (ACCycles > 3)// if we didn't receive Data until now abort
+        {
+            ACCycles = 0; // resetting
+            Communicating = false;
+            APDUInterface.Mode = COM_IDLE;
 
+            /* No data to be processed. Disable loadmodding and start listening again */
+            CODEC_TIMER_LOADMOD.CTRLA = TC_CLKSEL_OFF_gc;
+            CODEC_TIMER_LOADMOD.INTCTRLA = 0;
+            extern LEDActionEnum LEDRedAction;
+            LEDRedAction = LED_BLINK_1X;
+            StartDemod();
+        }
+    }
+    if (Flags.DemodFinished) {
+        Flags.DemodFinished = 0;
+        /* Reception finished. Process the received bytes */
+        uint16_t DemodBitCount = BitCount;
+        uint16_t AnswerBitCount = ISO14443A_APP_NO_RESPONSE;
+
+        if (DemodBitCount >= ISO14443A_MIN_BITS_PER_FRAME) {
+            // For logging data
+            LogEntry(LOG_INFO_CODEC_RX_DATA, CodecBuffer, (DemodBitCount+7)/8);
+            LEDHook(LED_CODEC_RX, LED_PULSE);
+
+            /* Call application if we received data */
+            AnswerBitCount = ApplicationProcess(CodecBuffer, DemodBitCount);
+            if (Communicating)return;
+
+            if (AnswerBitCount & ISO14443A_APP_CUSTOM_PARITY) {
+                /* Application has generated it's own parity bits.
+                 * Clear this option bit. */
+                AnswerBitCount &= ~ISO14443A_APP_CUSTOM_PARITY;
+                ParityBufferPtr = &CodecBuffer[ISO14443A_BUFFER_PARITY_OFFSET];
+            } else {
+                /* We have to generate the parity bits ourself */
+                ParityBufferPtr = 0;
+            }
+        }
+
+        if (AnswerBitCount != ISO14443A_APP_NO_RESPONSE) {
+            if (AnswerBitCount<= (255*8))
+                LogEntry(LOG_INFO_CODEC_TX_DATA, CodecBuffer, (AnswerBitCount + 7) / 8);
+            else
+                LogEntry(LOG_INFO_CODEC_TX_DATA, CodecBuffer, 255);
+            LEDHook(LED_CODEC_TX, LED_PULSE);
+
+            BitCount = AnswerBitCount;
+            CodecBufferPtr = CodecBuffer;
+            CodecSetSubcarrier(CODEC_SUBCARRIERMOD_OOK, ISO14443A_SUBCARRIER_DIVIDER);
+
+            StateRegister = LOADMOD_START;
+        } else {
+            /* No data to be processed. Disable loadmodding and start listening again */
+            CODEC_TIMER_LOADMOD.CTRLA = TC_CLKSEL_OFF_gc;
+            CODEC_TIMER_LOADMOD.INTCTRLA = 0;
+
+            StartDemod();
+        }
+    }
+
+    if (Flags.LoadmodFinished) {
+        Flags.LoadmodFinished = 0;
+        /* Load modulation has been finished. Stop it and start to listen
+         * for incoming data again. */
+        StartDemod();
+    }
+}

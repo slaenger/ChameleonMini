@@ -2,7 +2,7 @@
 #include "Terminal.h"
 #include "../System.h"
 #include "../LEDHook.h"
-
+#include "ApplicationCom.h"
 #include "../LUFADescriptors.h"
 
 #define INIT_DELAY		(2000 / SYSTEM_TICK_MS)
@@ -71,7 +71,9 @@ static void ProcessByte(void) {
 
         if (XModemProcessByte(Byte)) {
             /* XModem handled the byte */
-        } else if (CommandLineProcessByte(Byte)) {
+        } else if (APDUProcessByte(Byte)){
+
+        }else if (CommandLineProcessByte(Byte)) {
             /* CommandLine handled the byte */
         }
     }

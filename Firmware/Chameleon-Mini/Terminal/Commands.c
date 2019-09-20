@@ -15,10 +15,11 @@
 #include "../AntennaLevel.h"
 #include "../Battery.h"
 #include "../Codec/Codec.h"
+#include "ApplicationCom.h"
 
 extern Reader14443Command Reader14443CurrentCommand;
 extern Sniff14443Command Sniff14443CurrentCommand;
-
+extern APDUComInterface APDUInterface;
 extern const PROGMEM CommandEntryType CommandTable[];
 
 CommandStatusIdType CommandGetVersion(char* OutParam)

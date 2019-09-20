@@ -19,6 +19,7 @@
 void ISO14443ACodecInit(void);
 void ISO14443ACodecDeInit(void);
 void ISO14443ACodecTask(void);
+void ISO14443AAPDUCodecTask(void);
 
 
 

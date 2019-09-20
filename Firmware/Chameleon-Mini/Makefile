@@ -18,6 +18,8 @@ SETTINGS	+= -DCONFIG_SL2S2002_SUPPORT
 SETTINGS	+= -DCONFIG_TITAGITSTANDARD_SUPPORT
 SETTINGS	+= -DCONFIG_ISO15693_SNIFF_SUPPORT
 SETTINGS	+= -DCONFIG_EM4233_SUPPORT
+SETTINGS	+= -DCONFIG_APDU_SUPPORT
+
 
 #Support magic mode on mifare classic configuration
 SETTINGS	+= -DSUPPORT_MF_CLASSIC_MAGIC_MODE
@@ -57,8 +59,8 @@ SETTINGS	+= -DDEFAULT_GREEN_LED_ACTION=LED_POWERED
 SETTINGS	+= -DLED_SETTING_GLOBAL
 
 #Default logging mode
-SETTINGS	+= -DDEFAULT_LOG_MODE=LOG_MODE_OFF
-#SETTINGS	+= -DDEFAULT_LOG_MODE=LOG_MODE_MEMORY
+#SETTINGS	+= -DDEFAULT_LOG_MODE=LOG_MODE_OFF
+SETTINGS	+= -DDEFAULT_LOG_MODE=LOG_MODE_MEMORY
 #SETTINGS	+= -DDEFAULT_LOG_MODE=LOG_MODE_TERMINAL
 
 #Define if log settings should be global
@@ -98,8 +100,8 @@ F_USB        = 48000000
 TARGET       = Chameleon-Mini
 OPTIMIZATION = s
 SRC         += $(TARGET).c LUFADescriptors.c System.c Configuration.c Random.c Common.c Memory.c MemoryAsm.S Button.c Log.c Settings.c LED.c Map.c AntennaLevel.c
-SRC         += Terminal/Terminal.c Terminal/Commands.c Terminal/XModem.c Terminal/CommandLine.c
-SRC         += Codec/Codec.c Codec/ISO14443-2A.c Codec/Reader14443-2A.c Codec/SniffISO14443-2A.c Codec/Reader14443-ISR.S
+SRC         += Terminal/Terminal.c Terminal/Commands.c Terminal/XModem.c Terminal/CommandLine.c Terminal/ApplicationCom.c 
+SRC         += Codec/Codec.c Codec/ISO14443-2A.c Codec/Reader14443-2A.c Codec/SniffISO14443-2A.c Codec/Reader14443-ISR.S Application/EMV.c 
 SRC         += Application/MifareUltralight.c Application/MifareClassic.c Application/ISO14443-3A.c Application/Crypto1.c Application/Reader14443A.c Application/Sniff14443A.c Application/CryptoTDEA.S 
 SRC         += Codec/ISO15693.c
 SRC         += Application/Vicinity.c Application/Sl2s2002.c Application/TITagitstandard.c Application/ISO15693-A.c Application/EM4233.c
