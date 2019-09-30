@@ -71,7 +71,7 @@ bool APDUProcessByte (uint8_t Byte)
         } else if (Byte == '\b') {
             /* Backspace. Delete last character in buffer. */
             if (APDUInterface.BitCount > 0) {
-                APDUInterface.BitCount--;
+                APDUInterface.BitCount -= 4;
             }
         } else if (Byte == 0x1B) {
             /* Drop buffer on escape */
